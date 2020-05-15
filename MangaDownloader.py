@@ -274,7 +274,7 @@ class MangaDownloader():
             try:
                 html= self.download()
                 soup = BeautifulSoup(html)
-                self.manga_titulo = soup.find(u"span", {u"itemprop":u"title"}).text
+                self.manga_titulo = soup.find(u"span", {u"itemprop":u"name"}).text
                 self.manga_titulo = self.manga_titulo.replace(':',' ')
                 manga = soup.find("object",{u"id":u"showmedia_videoplayer_object"}).find("embed",{u"type":u"application/x-shockwave-flash"}).get("flashvars")
                 manga = manga.split("=")
