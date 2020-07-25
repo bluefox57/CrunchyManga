@@ -297,7 +297,7 @@ class MangaDownloader():
             except Exception,e:
                 print "The link is certainly from Crunchyroll, but it seems that it's not correct. Verify it and try again."
                 return
-            cr_auth = "http://api-manga.crunchyroll.com/cr_authenticate?auth=&session_id="+sesion_id+"&version=0&format=json"
+            cr_auth = "https://api-manga.crunchyroll.com/cr_authenticate?auth=&session_id="+sesion_id+"&version=0&format=json"
             html = self.download(cr_auth)
             try:
                 soup = json.loads(html)
@@ -306,7 +306,7 @@ class MangaDownloader():
                     cr_auth=cr_auth+item            
             except:
                 cr_auth = "null"            
-            url_serie = "http://api-manga.crunchyroll.com/chapters?series_id="+serie_id
+            url_serie = "https://api-manga.crunchyroll.com/chapters?series_id="+serie_id
             html= self.download(url_serie)
             soup = json.loads(html)
             chapter_id = ""
@@ -317,7 +317,7 @@ class MangaDownloader():
                 print u"\nThe chapter %s is not currently unavailable, try again later.\n"%self.manga_numcap
                 return
             else:
-                url_capitulo = "http://api-manga.crunchyroll.com/list_chapter?session_id="+sesion_id+"&chapter_id="+chapter_id+"&auth="+cr_auth
+                url_capitulo = "https://api-manga.crunchyroll.com/list_chapter?session_id="+sesion_id+"&chapter_id="+chapter_id+"&auth="+cr_auth
                 try:
                     html= self.download(url_capitulo)
                     soup = json.loads(html)
@@ -355,7 +355,7 @@ class MangaDownloader():
             except:
                 print "The link is certainly from Crunchyroll, but it seems that it's not correct. Verify it and try again."
                 return
-            url_serie = "http://api-manga.crunchyroll.com/chapters?series_id="+serie_id
+            url_serie = "https://api-manga.crunchyroll.com/chapters?series_id="+serie_id
             html= self.download(url_serie)
             soup = json.loads(html)
             self.manga_titulo = soup["series"].pop("locale").pop("enUS").pop("name")
@@ -368,7 +368,7 @@ class MangaDownloader():
                     chapter_id.append(item.pop("chapter_id")) 
                     capitulo.append(item.pop("number"))
                     self.manga_vol = item.pop("volume_number")
-            cr_auth = "http://api-manga.crunchyroll.com/cr_authenticate?auth=&session_id="+sesion_id+"&version=0&format=json"
+            cr_auth = "https://api-manga.crunchyroll.com/cr_authenticate?auth=&session_id="+sesion_id+"&version=0&format=json"
             html = self.download(cr_auth)
             try:
                 soup = json.loads(html)
@@ -396,7 +396,7 @@ class MangaDownloader():
                 else:
                     print "\n%s Vol.%s: Chapters %d/%d"%(self.manga_titulo,self.manga_vol,c+1,len(capitulo))
                     print "\nDownloading %s Vol.%s ch.%s"%(self.manga_titulo,self.manga_vol,self.manga_numcap)
-                url_capitulo = "http://api-manga.crunchyroll.com/list_chapter?session_id="+sesion_id+"&chapter_id="+chapter_id[c]+"&auth="+cr_auth
+                url_capitulo = "https://api-manga.crunchyroll.com/list_chapter?session_id="+sesion_id+"&chapter_id="+chapter_id[c]+"&auth="+cr_auth
                 html= self.download(url_capitulo)
                 soup = json.loads(html)
                 c2=0
@@ -464,7 +464,7 @@ class MangaDownloader():
                 sesion_id = sesion_id.split("=")
                 n = len(sesion_id)-2
                 sesion_id = sesion_id[n]
-                url_serie = "http://api-manga.crunchyroll.com/chapters?series_id="+serie_id
+                url_serie = "https://api-manga.crunchyroll.com/chapters?series_id="+serie_id
                 html= self.download(url_serie)
                 soup = json.loads(html)
                 self.manga_titulo = soup["series"].pop("locale").pop("enUS").pop("name")
@@ -501,7 +501,7 @@ class MangaDownloader():
                         
                     capitulo = ch
                     chapter_id = ch_id
-                cr_auth = "http://api-manga.crunchyroll.com/cr_authenticate?auth=&session_id="+sesion_id+"&version=0&format=json"
+                cr_auth = "https://api-manga.crunchyroll.com/cr_authenticate?auth=&session_id="+sesion_id+"&version=0&format=json"
                 html = self.download(cr_auth)
                 try:
                     soup = json.loads(html)
@@ -520,7 +520,7 @@ class MangaDownloader():
                         capitulo[c] = capitulo[c][:-1]
                     self.manga_numcap = capitulo[c]
                     print "\n\n%s chapters %d of %d: Downloading chapter %s"%(self.manga_titulo,c+1,len(capitulo),self.manga_numcap)
-                    url_capitulo = "http://api-manga.crunchyroll.com/list_chapter?session_id="+sesion_id+"&chapter_id="+chapter_id[c]+"&auth="+cr_auth
+                    url_capitulo = "https://api-manga.crunchyroll.com/list_chapter?session_id="+sesion_id+"&chapter_id="+chapter_id[c]+"&auth="+cr_auth
                     html= self.download(url_capitulo)
                     soup = json.loads(html)
                     c2=0
