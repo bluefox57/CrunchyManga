@@ -274,26 +274,33 @@ class MangaDownloader():
             try:
                 html= self.download()
                 soup = BeautifulSoup(html)
-                self.manga_titulo = soup.find(u"span", {u"itemprop":u"name"}).text
+                self.manga_titulo = soup.find(u"header", {u"class":u"chapter-header"}).find(u"h1").find(u"a").text
                 self.manga_titulo = self.manga_titulo.replace(':',' ')
-                manga = soup.find("object",{u"id":u"showmedia_videoplayer_object"}).find("embed",{u"type":u"application/x-shockwave-flash"}).get("flashvars")
-                manga = manga.split("=")
-                n = len(manga)-2
-                serie_id = manga[1][:manga[1].find('&chapterNumber')]
-                numero_cap = manga[2][:manga[2].find('&server')]
-                if re.match(r"([0-9]+)(\.[0-9]{1,2})",numero_cap):
-                    ch = re.match(r"([0-9]+)(\.[0-9]{1,2})",numero_cap)
+                manga = soup.findAll("script")
+                tag_found = False
+                for script in manga:
+                    if script.find(text=re.compile(r'\bapiHost: *"https:\\/\\/api-manga.crunchyroll.com"')):
+                        serie_id = re.search(r'\bseriesId: *"(\d+)"', script.text).group(1)
+                        numero_cap = re.search(r'\bchapterNum: *(\d+(?:\.\d+)?),', script.text).group(1)
+                        sesion_id = re.search(r'\bsessionId: *"(\w+)"', script.text).group(1)
+                        chapter_id = re.search(r'\bchapterId: *"(\d+)"', script.text).group(1)
+                        tag_found = True
+                        break
+                if not tag_found:
+                    raise Exception("Expected script tag not found in HTML.")
+                if re.match(r"\d+\.\d+",numero_cap):
+                    ch = re.match(r"(\d+)\.(\d+)",numero_cap)
                     ch = ch.groups()
-                    if ch[1].__len__() == 2:
-                        numero_cap = numero_cap + "0"
-                    x = numero_cap[-2:]
-                    if x == "00":
+                    if ch[1].__len__() > 2:
+                        numero_cap = numero_cap[:numero_cap.find(".")+3]
+                    if numero_cap[-2:] == "00":
                         self.manga_numcap = numero_cap[:-3]
-                    else:
+                    elif numero_cap[-1:] == "0":
                         self.manga_numcap = numero_cap[:-1]
+                    else:
+                        self.manga_numcap = numero_cap
                 else:
                     self.manga_numcap = numero_cap
-                sesion_id = manga[n][:manga[n].find('&config_url')]
             except Exception,e:
                 print "The link is certainly from Crunchyroll, but it seems that it's not correct. Verify it and try again."
                 return
@@ -306,42 +313,31 @@ class MangaDownloader():
                     cr_auth=cr_auth+item            
             except:
                 cr_auth = "null"            
-            url_serie = "https://api-manga.crunchyroll.com/chapters?series_id="+serie_id
-            html= self.download(url_serie)
-            soup = json.loads(html)
-            chapter_id = ""
-            for item in soup["chapters"]:
-                if item["number"] == str(numero_cap):
-                    chapter_id = item["chapter_id"]
-            if chapter_id == "":
-                print u"\nThe chapter %s is not currently unavailable, try again later.\n"%self.manga_numcap
+            url_capitulo = "https://api-manga.crunchyroll.com/list_chapter?session_id="+sesion_id+"&chapter_id="+chapter_id+"&auth="+cr_auth
+            try:
+                html= self.download(url_capitulo)
+                soup = json.loads(html)
+                c=0
+                pages = {}
+                for item in soup["pages"]:
+                    try:
+                        pages[c] = item["locale"].pop("enUS").pop("encrypted_composed_image_url")
+                    except:      
+                        pages[c] = item["image_url"]
+                    c=c+1
+            except Exception,e:
+                print "\n\nYou have to be premium user in order to download this chapter. "
                 return
-            else:
-                url_capitulo = "https://api-manga.crunchyroll.com/list_chapter?session_id="+sesion_id+"&chapter_id="+chapter_id+"&auth="+cr_auth
-                try:
-                    html= self.download(url_capitulo)
-                    soup = json.loads(html)
-                    c=0
-                    pages = {}
-                    for item in soup["pages"]:
-                        try:
-                            pages[c] = item["locale"].pop("enUS").pop("encrypted_composed_image_url")
-                        except:      
-                            pages[c] = item["image_url"]
-                        c=c+1
-                except Exception,e:
-                    print "\n\nYou have to be premium user in order to download this chapter. "
-                    return
-                print u"\nDownloading %s - %s..."%(self.manga_titulo,self.manga_numcap)
-                x = self.Directorio()
-                if not x:
-                    print "The folder %s - %s already exists and overwrite folders is deactivated."%(self.manga_titulo,self.manga_numcap)
-                    os.chdir(self.directorio)
-                else:              
-                    descarga = self.downloadPages(pages)
-                    os.chdir(self.directorio)
-                    if self.zip and descarga == 1:
-                        self.zipmanga()
+            print u"\nDownloading %s - %s..."%(self.manga_titulo,self.manga_numcap)
+            x = self.Directorio()
+            if not x:
+                print "The folder %s - %s already exists and overwrite folders is deactivated."%(self.manga_titulo,self.manga_numcap)
+                os.chdir(self.directorio)
+            else:              
+                descarga = self.downloadPages(pages)
+                os.chdir(self.directorio)
+                if self.zip and descarga == 1:
+                    self.zipmanga()
         elif re.match(r"^(http:\/\/)(w{3}\.)?(crunchyroll\.com\/comics_read)(\/(manga|comipo|artistalley))?(\?volume\_id\=[0-9]+)$",self.url): #Crunchyroll por volumenes
             volume = re.match(r"^(http:\/\/)(w{3}\.)?(crunchyroll\.com\/comics_read)(\/(?:manga|comipo|artistalley))?(\?volume\_id\=([0-9]+))$",self.url) 
             try:
