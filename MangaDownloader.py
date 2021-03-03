@@ -196,11 +196,9 @@ class MangaDownloader():
     def mangaurl(self,url):
         if not url.replace(" ","") == "":
             
-            if re.search(r"^(https://)",url):
-                url = url.replace("https://","http://")
-            elif re.search(r"^(http://)",url):pass
+            if re.search(r"^(https?://)",url):pass
             else:
-                url = "http://"+url
+                url = "https://"+url
             self.url = url.replace(" ","")
         
         
@@ -270,7 +268,7 @@ class MangaDownloader():
             ch_dwn = url[1]
             self.url = url[0]            
         print "Analyzing link %s..."%self.url
-        if re.match(r"^(http:\/\/)(w{3}\.)?(crunchyroll\.com\/comics_read(\/(manga|comipo|artistalley))?\?(volume\_id|series\_id)\=[0-9]+&chapter\_num\=[0-9]+(\.[0-9])?)",self.url): #Crunchyroll por episodios.
+        if re.match(r"^https?://www\.crunchyroll\.com/manga/[^/]+/read/\d+(\.\d+)?",self.url): #Crunchyroll por episodios.
             try:
                 html= self.download()
                 soup = BeautifulSoup(html)
